@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javafx.animation.FadeTransition;
@@ -39,6 +40,7 @@ public class test extends Application {
     private GButton myMusicPlayer;
     private GButton myWeather;
 
+    private GButton myLightClose;
     private HashMap<Lights, String[]> LightDic;
     private GButton myMenu;
     // private int MenuAnimationDuration;
@@ -48,6 +50,13 @@ public class test extends Application {
     private double xOffset = 0;
     private double yOffset = 0;
     private boolean draggable = false;
+
+    // ! I think the way the subbuttons are initialized might be wrong
+
+    // ! Make sure the subbutons always know what value they are supposed to be on
+
+    // ! make a method that returns if all lights are on after each subbutton press
+    // ! or update that can also toggle the main switch
 
     @Override
     public void start(Stage primaryStage) {
@@ -115,16 +124,29 @@ public class test extends Application {
 
         myLightSwitch = new GButton();
         createImageButton(myLightSwitch, buttonSize, buttonSize, 100, 125, "bulb2.png");
+
+        myLightClose = new GButton();
+        createImageSubButton(myLightClose, subLightSize / 2, subLightSize / 2, Width, subLightSize / 4, "Close.png"); // !
+                                                                                                                      // This
+                                                                                                                      // is
+        // still too
+        // big
+
+        myLightClose.setOpacity(.5);
+        root.getChildren().add(myLightClose);
         myLightSwitch.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
 
-                double time_pressed = 0;
                 if (!draggable) {
-                    if (time_pressed < 2) {
+                    // Light switch toggle
+
+                    // Goes into the submodule and creates the subbuttons
+                    if (lightSubModule) {
                         if (lightOn) {
                             lightOn = false;
                             for (GButton b : lightSubButtons) {
+
                                 b.setOn(false);
                             }
                             toggleButtonImage(myLightSwitch, "bulb2.png");
@@ -132,63 +154,42 @@ public class test extends Application {
                             lightOn = true;
                             for (GButton b : lightSubButtons) {
                                 b.setOn(true);
+
                             }
                             toggleButtonImage(myLightSwitch, "bulb_on.png");
                         }
-                    } else {
-                        if (lightSubModule) {
-
-                            lightSubModule = false;
-                            // TODO here one could add more code turning he light actually off
-                            goBackToPosition();
-
-                            for (GButton b : lightSubButtons) {
-                                // this works as well. It moves the subbuttons well and nicely under the main
-                                // lightswitch
-                                double yInScreen = root.getHeight() / 2.4 - buttonSize / 2 + buttonSize;
-                                double dest = Height;
-                                TranslateTransition buttonMoveUp = new TranslateTransition(
-                                        Duration.seconds(animationSpeed),
-                                        b);
-                                if (b.getSpawnedOutside())
-                                    buttonMoveUp.setToY(0);
-                                else
-                                    buttonMoveUp.setToY(dest - yInScreen);
-                                buttonMoveUp.play();
-
-                            }
-                        } else {
-
-                            lightSubModule = true;
-                            // TODO here one could add more code turning light actually on
-                            buttonDistribute(myLightSwitch);
-
-                            for (GButton b : lightSubButtons) {
-                                // this works as well. It moves the subbuttons well and nicely under the main
-                                // lightswitch
-
-                                double dest = root.getHeight() / 2.4 - buttonSize / 2 + buttonSize;
-                                TranslateTransition buttonMoveUp = new TranslateTransition(
-                                        Duration.seconds(animationSpeed),
-                                        b);
-                                if (b.getSpawnedOutside()) {
-                                    buttonMoveUp.setToY(dest - Height);
-                                } else {
-                                    buttonMoveUp.setToY(0);
-                                }
-                                buttonMoveUp.play();
-
-                            }
-                        }
                     }
+                    TranslateTransition MoveItIn = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            myLightClose);
+                    MoveItIn.setToX(-.75 * subLightSize);
+                    MoveItIn.play();
+
+                    // TODO here one could add more code turning he light actually off
+                    for (GButton b : lightSubButtons) {
+                        // this works as well. It moves the subbuttons well and nicely under the main
+                        // lightswitch
+
+                        double dest = root.getHeight() / 2.4 - buttonSize / 2 + buttonSize;
+                        TranslateTransition buttonMoveUp = new TranslateTransition(
+                                Duration.seconds(animationSpeed),
+                                b);
+                        if (b.getSpawnedOutside()) {
+                            buttonMoveUp.setToY(dest - Height);
+                        } else {
+                            buttonMoveUp.setToY(0);
+                        }
+                        buttonMoveUp.play();
+
+                    }
+
+                    lightSubModule = true;
+                    buttonDistribute(myLightSwitch);
+
                     // Move all buttons when myLightSwitch is pressed
                 }
             }
         });
-
-        // GButton subLight = new GButton(LightDic.get(Lights.SWITCH)[0],
-        // LightDic.get(Lights.SWITCH)[1], false);
-        // addSubLight(subLight);
 
         makeDraggable(myLightSwitch);
 
@@ -197,6 +198,50 @@ public class test extends Application {
 
         // *------------------------------------------------------------------- */
 
+        // *-------------------------------------------------------------------- */
+
+        // This is the close button for the Lightwindow:
+
+        // The x animations later go to -subLightSize and 0 for in and out respectively
+
+        myLightClose.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+                if (lightSubModule) {
+                    goBackToPosition();
+                    TranslateTransition buttonGoBack = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            myLightClose);
+                    buttonGoBack.setToX(0);
+                    buttonGoBack.play();
+                    lightSubModule = false;
+
+                    for (GButton b : lightSubButtons) {
+                        // this works as well. It moves the subbuttons well and nicely under the main
+                        // lightswitch
+                        double yInScreen = root.getHeight() / 2.4 - buttonSize / 2 + buttonSize;
+                        double dest = Height;
+                        TranslateTransition buttonMoveUp = new TranslateTransition(
+                                Duration.seconds(animationSpeed),
+                                b);
+                        if (b.getSpawnedOutside())
+                            buttonMoveUp.setToY(0);
+                        else
+                            buttonMoveUp.setToY(dest - yInScreen);
+                        buttonMoveUp.play();
+
+                    }
+
+                }
+            }
+        });
+
+        // TODO make an Animation in the Lightbutton module to move in the button
+
+        // Add the button to the root pane
+
+        // *--------------------------------------------------------------------- */
         // TODO add music button
 
         myMusicPlayer = new GButton();
@@ -215,6 +260,22 @@ public class test extends Application {
                     } else {
                         toggleButtonImage(myMusicPlayer, "play.png");
                         musicPlaying = true;
+                        // here is marteens code for the
+                        if (onPi) {
+                            // !Activate if we have adjusted the path
+                            // try {
+                            // ProcessBuilder pb = new ProcessBuilder("python",
+                            // "C:/Users/maart/IdeaProjects/untitled2/music_visualizer.py"); // ! replace
+                            // file
+                            // // path
+                            // pb.inheritIO(); // Redirects the standard input, output, and error to the
+                            // current Java
+                            // // process
+                            // pb.start();
+                            // } catch (IOException ex) {
+                            // ex.printStackTrace();
+                            // }
+                        }
                         // TODO here one could add more code turning light actually on
 
                     }
@@ -227,7 +288,8 @@ public class test extends Application {
 
         // Add the button to the root pane
         root.getChildren().add(myMusicPlayer);
-        // TODO add weather button
+
+        // TODO add weather button and maybe an app for the weather
         myWeather = new GButton();
 
         createImageButton(myWeather, buttonSize, buttonSize, 500, 150, "weather.png");
@@ -293,6 +355,27 @@ public class test extends Application {
 
     public void createImageSubButton(GButton button, int width, int height, int xPos, int yPos) {
         Image image = (button.getOn()) ? new Image(button.getOnPath()) : new Image(button.getOffPath());
+        ImageView imageView = new ImageView(image);
+
+        imageView.setFitWidth(width);
+        imageView.setFitHeight(height);
+
+        // Create a button with the image
+        button.setGraphic(imageView);
+
+        // Remove default button styling
+        button.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+
+        // Set the size of the button
+        button.setPrefSize(width, height);
+
+        // Set the position of the button
+        button.setLayoutX(xPos);
+        button.setLayoutY(yPos);
+    }
+
+    public void createImageSubButton(GButton button, int width, int height, int xPos, int yPos, String path) {
+        Image image = new Image(path);
         ImageView imageView = new ImageView(image);
 
         imageView.setFitWidth(width);
