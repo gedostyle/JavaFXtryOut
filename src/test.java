@@ -19,6 +19,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class test extends Application {
     private final int Height = 480;
@@ -27,6 +28,7 @@ public class test extends Application {
     private boolean lightOn;
     private boolean musicPlaying;
     private double animationSpeed;
+    private boolean onPi = false;
 
     private Pane root;
 
@@ -85,6 +87,11 @@ public class test extends Application {
         primaryStage.setScene(scene);
 
         // Set the size of the root node
+        // Set the stage style to UNDECORATED
+        primaryStage.initStyle(StageStyle.UNDECORATED);
+        if (onPi)
+            // Set the stage to full screen
+            primaryStage.setFullScreen(true);
 
         // Set the stage size and prevent resizing
         primaryStage.setResizable(false);
