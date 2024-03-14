@@ -130,7 +130,7 @@ public class test extends Application {
 
                 if (!draggable) {
                     // Light switch toggle
-
+                    upDateButtonDatabase();
                     // Goes into the submodule and creates the subbuttons
                     if (lightSubModule) {
                         if (lightOn) {
@@ -581,10 +581,24 @@ public class test extends Application {
                 if (subLight.getOn()) {
                     subLight.turnOff();
                     toggleSubButtonImage(subLight);
+                    if (checkAllSubsOn()) {
+                        lightOn = true;
+                        toggleButtonImage(myLightSwitch, "bulb_on.png");
+                    } else {
+                        lightOn = false;
+                        toggleButtonImage(myLightSwitch, "bulb2.png");
+                    }
 
                 } else {
                     subLight.turnOn();
                     toggleSubButtonImage(subLight);
+                    if (checkAllSubsOn()) {
+                        lightOn = true;
+                        toggleButtonImage(myLightSwitch, "bulb_on.png");
+                    } else {
+                        lightOn = false;
+                        toggleButtonImage(myLightSwitch, "bulb2.png");
+                    }
 
                 }
             }
@@ -636,6 +650,14 @@ public class test extends Application {
             }
             System.out.println(LightID);
         }
+        if (checkAllSubsOn()) {
+            lightOn = true;
+            toggleButtonImage(myLightSwitch, "bulb_on.png");
+        } else {
+            lightOn = false;
+            toggleButtonImage(myLightSwitch, "bulb2.png");
+        }
+
     }
 
     public boolean toBooleanConverter(int num) {
@@ -670,6 +692,26 @@ public class test extends Application {
 
     public void toggleValue(int LightID) {
 
+    }
+
+    public boolean checkAllSubsOn() {
+        boolean allOn = true;
+        for (GButton b : lightSubButtons) {
+            if (b.getOn() != true) {
+                allOn = false;
+            }
+        }
+        return allOn;
+    }
+
+    public boolean checkOneSubOff() {
+        boolean allOff = true;
+        for (GButton b : lightSubButtons) {
+            if (b.getOn() == true) {
+                allOff = false;
+            }
+        }
+        return allOff;
     }
 
     public static void main(String[] args) {
