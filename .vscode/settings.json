@@ -1,9 +1,8 @@
 {
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar"
-    ],
-    "java.project.sourcePaths": [
-        ".vscode",
-        "src"
-    ]
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar",
+    "/Users/losmachinos/Downloads/json-simple-1.1.1.jar",
+    "/Users/losmachinos/Documents/School stuff/KU Leuven Stuff/EE2 stuff/UI and Database/DBsample/json-20210307.jar"
+  ],
+  "java.project.sourcePaths": [".vscode", "src"]
 }

@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "DBTest",
+            "request": "launch",
+            "mainClass": "DBTest",
+            "projectName": "JavaFXtryOut_625a24cf"
+        },
+        {
+            "type": "java",
             "name": "Test",
             "request": "launch",
             "mainClass": "Test",

@@ -1,24 +1,16 @@
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import javafx.animation.FadeTransition;
-
 import javafx.animation.TranslateTransition;
-
 import javafx.util.Duration;
 import javafx.scene.layout.Region;
-
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
 import javafx.scene.layout.Pane;
-
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -41,7 +33,7 @@ public class test extends Application {
     private GButton myWeather;
 
     private GButton myLightClose;
-    private HashMap<Lights, String[]> LightDic;
+
     private GButton myMenu;
     // private int MenuAnimationDuration;
 
@@ -73,11 +65,9 @@ public class test extends Application {
         buttons.clear();
         lightSubButtons = new ArrayList<>();
         lightSubButtons.clear();
-        LightDic = new HashMap<>();
+
         animationSpeed = .5;
-        // SubLights all get a know weather they are on or off and they can tell you
-        // their current image path
-        LightDic.put(Lights.SWITCH, new String[] { "SwitchOn.png", "SwitchOff.png" });
+
         // ---------------------------
 
         // Create a root node for the scene
@@ -146,15 +136,15 @@ public class test extends Application {
                         if (lightOn) {
                             lightOn = false;
                             for (GButton b : lightSubButtons) {
-
-                                b.setOn(false);
+                                b.turnOff();
+                                toggleSubButtonImage(b);
                             }
                             toggleButtonImage(myLightSwitch, "bulb2.png");
                         } else {
                             lightOn = true;
                             for (GButton b : lightSubButtons) {
-                                b.setOn(true);
-
+                                b.turnOn();
+                                toggleSubButtonImage(b);
                             }
                             toggleButtonImage(myLightSwitch, "bulb_on.png");
                         }
@@ -237,12 +227,8 @@ public class test extends Application {
             }
         });
 
-        // TODO make an Animation in the Lightbutton module to move in the button
-
-        // Add the button to the root pane
-
         // *--------------------------------------------------------------------- */
-        // TODO add music button
+        // music button
 
         myMusicPlayer = new GButton();
 
@@ -311,13 +297,11 @@ public class test extends Application {
                 // myWheather.setDisable(true);
                 // myLightSwitch.setOpacity(.2);
                 // TODO add a menu if needed... Had difficulties getting the animation down
-                if (lightSubButtons.size() < 7) {
-                    GButton subLight3 = new GButton(LightDic.get(Lights.SWITCH)[0], LightDic.get(Lights.SWITCH)[1],
-                            false);
-                    // ! When we later have the database for lights, one has to create lights over
-                    // ! here
-                    addSubLight(subLight3);
-                }
+
+                upDateButtonDatabase();
+                // ! When we later have the database for lights, one has to create lights over
+                // ! here
+
             }
         });
 
@@ -595,12 +579,13 @@ public class test extends Application {
             public void handle(ActionEvent event) {
 
                 if (subLight.getOn()) {
+                    subLight.turnOff();
                     toggleSubButtonImage(subLight);
-                    subLight.setOn(false);
 
                 } else {
+                    subLight.turnOn();
                     toggleSubButtonImage(subLight);
-                    subLight.setOn(true);
+
                 }
             }
 
@@ -614,6 +599,78 @@ public class test extends Application {
 
     // ! Add a delete a button function that should litterally the oposite of the
     // ! add function
+
+    // *------------------------------------------------------------------------------------
+
+    // * Database peripherals */
+
+    // ! The for loop is broken
+
+    public void upDateButtonDatabase() {
+        DBTest db = new DBTest();
+        String response = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/Get_all_lights");
+        ArrayList<String> values = new ArrayList<>();
+        values = db.parseJSON(response);
+        for (int i = 0; i < values.size() - 4; i++) {
+            int LightID = Integer.parseInt(values.get(i));
+            boolean LightOn = toBooleanConverter(Integer.parseInt(values.get(i + 1)));
+            String LightName = values.get(i + 2);
+            String LightFunction = values.get(i + 3);
+            Lights SwitchType = EnumConverter(values.get(i + 4));
+            i += 4;
+            if (LightFunction == null) {
+                LightFunction = "";
+            }
+            GButton newButton = new GButton(LightID, LightOn, LightName, LightFunction, SwitchType);
+            boolean IDfound = false;
+            for (GButton b : lightSubButtons) {
+                if (b.getLightID() == LightID) {
+                    IDfound = true;
+                    b.turnValueTo(LightOn);
+                    toggleSubButtonImage(b);
+                }
+            }
+            if (!IDfound && lightSubButtons.size() < 7) {
+                addSubLight(newButton);
+                toggleSubButtonImage(newButton);
+            }
+            System.out.println(LightID);
+        }
+    }
+
+    public boolean toBooleanConverter(int num) {
+        if (num == 1) {
+            return true;
+        } else
+            return false;
+    }
+
+    public int toTinIntConverter(boolean bool) {
+        if (bool) {
+            return 1;
+        } else {
+            return 0;
+        }
+
+    }
+
+    public Lights EnumConverter(String s) {
+        if (s.equals("SWITCH")) {
+            return Lights.SWITCH;
+        } else if (s.equals("BULB")) {
+            return Lights.BULB;
+        } else if (s.equals("LEDSTRIP")) {
+            return Lights.LEDSTRIP;
+        } else if (s.equals("PLUG")) {
+            return Lights.PLUG;
+        } else
+            return null;
+
+    }
+
+    public void toggleValue(int LightID) {
+
+    }
 
     public static void main(String[] args) {
         launch(args);
