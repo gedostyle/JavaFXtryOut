@@ -1,4 +1,4 @@
-import java.io.File;
+
 import java.util.ArrayList;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -16,10 +16,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.Media;
-import javax.sound.sampled.*;
 import javafx.scene.media.AudioClip;
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Paths;
 
 public class test extends Application {
     private final int Height = 480;
@@ -139,7 +139,7 @@ public class test extends Application {
 
                 if (!draggable) {
                     // Light switch toggle
-                    upDateButtonDatabase();
+
                     // Goes into the submodule and creates the subbuttons
                     if (lightSubModule) {
                         if (lightOn) {
@@ -165,6 +165,7 @@ public class test extends Application {
                     MoveItIn.play();
 
                     // TODO here one could add more code turning he light actually off
+                    upDateButtonDatabase();
                     for (GButton b : lightSubButtons) {
                         // this works as well. It moves the subbuttons well and nicely under the main
                         // lightswitch
@@ -318,6 +319,8 @@ public class test extends Application {
                     buttonDistribute(myKey);
                     addTheKeyAddButton();
 
+                    // TODO make the keyCounter come in with the MONSTERRAT font
+
                 }
             }
         });
@@ -331,6 +334,8 @@ public class test extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (keySubmenu) {
+                    DBTest db = new DBTest();
+                    db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 0);
                     goBackToPosition();
                     TranslateTransition buttonGoBack = new TranslateTransition(
                             Duration.seconds(animationSpeed),
@@ -794,7 +799,21 @@ public class test extends Application {
                         (int) (yHeight), "confirmation.png");
                 confirm.setOpacity(0);
                 root.getChildren().add(confirm);
+                DBTest db = new DBTest();
+                db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 1);
+                tellDatabaseToStoreNewButton();
+                try {
 
+                    File file = new File(
+                            "src/confirmation.wav");
+                    String filePath = file.toURI().toString();
+                    AudioClip sound = new AudioClip(filePath);
+                    sound.play();
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                // TODO here add that a buttons needs to be added to the database
                 // Fade in animation
                 FadeTransition fadeIn = new FadeTransition(Duration.seconds(.4), confirm);
                 fadeIn.setFromValue(0);
@@ -803,15 +822,6 @@ public class test extends Application {
                 // Fade hold animation (staying visible for a shorter while)
                 PauseTransition hold = new PauseTransition(Duration.seconds(0.1)); // Adjust the duration as needed
                 hold.setOnFinished(e -> {
-
-                    try {
-
-                        AudioClip sound = new AudioClip("confimation.wav");
-                        sound.play();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-
                     // Fade out animation
                     FadeTransition fadeOut = new FadeTransition(Duration.seconds(.4), confirm);
                     fadeOut.setFromValue(.95);
@@ -828,6 +838,12 @@ public class test extends Application {
                 sequence.play();
             }
         });
+    }
+
+    public void tellDatabaseToStoreNewButton() {
+        // makeGetRequest and then just toogle the value to 1 where button has to be
+        // stored
+
     }
 
     public static void main(String[] args) {

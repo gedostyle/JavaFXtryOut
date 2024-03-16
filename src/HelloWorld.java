@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 
 public class HelloWorld {
@@ -18,4 +19,3 @@ public class HelloWorld {
         frame.setVisible(true); // Make the frame visible
     }
 }
-
