@@ -30,7 +30,7 @@
             "name": "Current File",
             "request": "launch",
             "mainClass": "test",
-            "vmArgs": "--module-path lib/ --add-modules javafx.controls",
+            "vmArgs": "--module-path lib/ --add-modules javafx.controls,javafx.fxml,javafx.media",
             "args": ""
         }
     ]

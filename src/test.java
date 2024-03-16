@@ -1,5 +1,8 @@
+import java.io.File;
 import java.util.ArrayList;
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import javafx.scene.layout.Region;
@@ -13,6 +16,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.Media;
+import javax.sound.sampled.*;
+import javafx.scene.media.AudioClip;
 
 public class test extends Application {
     private final int Height = 480;
@@ -22,6 +29,7 @@ public class test extends Application {
     private boolean musicPlaying;
     private double animationSpeed;
     private boolean onPi = false;
+    private boolean keySubmenu;
 
     private Pane root;
 
@@ -30,7 +38,8 @@ public class test extends Application {
     private ArrayList<GButton> lightSubButtons;
     private GButton myLightSwitch;
     private GButton myMusicPlayer;
-    private GButton myWeather;
+    private GButton myKey;
+    private GButton addKey;
 
     private GButton myLightClose;
 
@@ -65,8 +74,8 @@ public class test extends Application {
         buttons.clear();
         lightSubButtons = new ArrayList<>();
         lightSubButtons.clear();
-
-        animationSpeed = .5;
+        keySubmenu = false;
+        animationSpeed = .2;
 
         // ---------------------------
 
@@ -242,7 +251,6 @@ public class test extends Application {
                     if (musicPlaying) {
                         toggleButtonImage(myMusicPlayer, "pause.png");
                         musicPlaying = false;
-                        // TODO here one could add more code turning he light actually off
                     } else {
                         toggleButtonImage(myMusicPlayer, "play.png");
                         musicPlaying = true;
@@ -262,7 +270,6 @@ public class test extends Application {
                             // ex.printStackTrace();
                             // }
                         }
-                        // TODO here one could add more code turning light actually on
 
                     }
                 }
@@ -276,12 +283,72 @@ public class test extends Application {
         root.getChildren().add(myMusicPlayer);
 
         // TODO add weather button and maybe an app for the weather
-        myWeather = new GButton();
+        // ---------------------------------------------------
 
-        createImageButton(myWeather, buttonSize, buttonSize, 500, 150, "weather.png");
-        makeDraggable(myWeather);
+        // the key adder
+        GButton myKeyClose = new GButton();
+        createImageSubButton(myKeyClose, subLightSize / 2, subLightSize / 2, Width, subLightSize / 4, "Close.png"); // !
+                                                                                                                    // This
+                                                                                                                    // is
+        // still too
+        // big
 
-        root.getChildren().add(myWeather);
+        myKeyClose.setOpacity(.5);
+        root.getChildren().add(myKeyClose);
+
+        myKey = new GButton();
+
+        createImageButton(myKey, buttonSize, buttonSize, 500, 150, "key.png");
+
+        myKey.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (!draggable && !keySubmenu) {
+                    TranslateTransition MoveItIn = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            myKeyClose);
+                    MoveItIn.setToX(-.75 * subLightSize);
+                    MoveItIn.play();
+
+                    // make a plus button and a text that explains how to calibrate a new key.
+                    // after that is done, make a small text prompt that says "congrats, your keys
+                    // weeigh btw"
+
+                    keySubmenu = true;
+                    buttonDistribute(myKey);
+                    addTheKeyAddButton();
+
+                }
+            }
+        });
+
+        makeDraggable(myKey);
+
+        root.getChildren().add(myKey);
+
+        myKeyClose.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                if (keySubmenu) {
+                    goBackToPosition();
+                    TranslateTransition buttonGoBack = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            myKeyClose);
+                    buttonGoBack.setToX(0);
+                    buttonGoBack.play();
+                    keySubmenu = false;
+
+                    TranslateTransition addButtonGoBack = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            addKey);
+                    addButtonGoBack.setToY(0);
+                    addButtonGoBack.play();
+                }
+            }
+        });
+
+        // ---------------------------------
 
         // TODO add menu button
         myMenu = new GButton();
@@ -299,8 +366,6 @@ public class test extends Application {
                 // TODO add a menu if needed... Had difficulties getting the animation down
 
                 upDateButtonDatabase();
-                // ! When we later have the database for lights, one has to create lights over
-                // ! here
 
             }
         });
@@ -506,33 +571,28 @@ public class test extends Application {
     }
 
     public void addSubLight(GButton subLight) {
-        // TODO here you can add code that gets the lights from the database
-        // You can choose from a List of options what your light is supposed to be
-        // TODO for loop through all the lights in the database
-        // TODO In the following you could add this to the for loop and just replace
-        // Switch by the type of Light you are using.
+        double speed = animationSpeed;
 
         double yHeight = Height / 2.4 - buttonSize / 2 + buttonSize;
-        ;
+        // The first light
         if (lightSubButtons.isEmpty()) {
             createImageSubButton(subLight, subLightSize, subLightSize, (int) (400 - 0.5 *
                     subLightSize),
                     (int) (Height));
             subLight.setSpawnedOutside(true);
             lightSubButtons.add(subLight);
-            TranslateTransition cominInHot = new TranslateTransition(Duration.seconds(animationSpeed),
-                    subLight);
-            if (lightSubModule) {
-                cominInHot.setToY(-yHeight + 1.05 * buttonSize / 2);// ? Here is a randomly guesed value
 
+            if (lightSubModule) {
+                TranslateTransition cominInHot = new TranslateTransition(Duration.seconds(speed),
+                        subLight);
+                cominInHot.setToY(-yHeight + 1.05 * buttonSize / 2);// ? Here is a randomly guesed value
                 cominInHot.play();
             }
-
         } else {
             if (lightSubButtons.size() < 7) {
                 int spawnPoint = Width;
                 for (int i = 0; i < lightSubButtons.size(); i++) {
-                    TranslateTransition buttonAdd = new TranslateTransition(Duration.seconds(animationSpeed),
+                    TranslateTransition buttonAdd = new TranslateTransition(Duration.seconds(speed),
                             lightSubButtons.get(i));
                     if (i == 0)
                         buttonAdd.setToX(-lightSubButtons.size() * subLightSize / 2);
@@ -562,7 +622,7 @@ public class test extends Application {
                 int goal = (int) (-Width / 2 + (lightSubButtons.size() - 1) * subLightSize / 2);
 
                 lightSubButtons.add(subLight);
-                TranslateTransition cominInHot = new TranslateTransition(Duration.seconds(animationSpeed),
+                TranslateTransition cominInHot = new TranslateTransition(Duration.seconds(speed),
                         subLight);
 
                 cominInHot.setToX(goal);
@@ -603,22 +663,14 @@ public class test extends Application {
                 }
             }
 
-            // ! Add functionality here with if statements hehe. Make external methods that
-            // ! are called here depending on what happens
-
         });
 
         root.getChildren().add(subLight);
     }
 
-    // ! Add a delete a button function that should litterally the oposite of the
-    // ! add function
-
     // *------------------------------------------------------------------------------------
 
     // * Database peripherals */
-
-    // ! The for loop is broken
 
     public void upDateButtonDatabase() {
         DBTest db = new DBTest();
@@ -694,6 +746,8 @@ public class test extends Application {
 
     }
 
+    // *--------------------------------------------------------------------------------------------
+    // */
     public boolean checkAllSubsOn() {
         boolean allOn = true;
         for (GButton b : lightSubButtons) {
@@ -712,6 +766,68 @@ public class test extends Application {
             }
         }
         return allOff;
+    }
+
+    // ---------------------------------------------------------
+
+    // Some code for the weightscale module
+
+    public void addTheKeyAddButton() {
+        double yHeight = Height / 2.4 - buttonSize / 2 + buttonSize;
+        addKey = new GButton();
+        createImageSubButton(addKey, subLightSize, subLightSize, (int) (400 - 0.5 *
+                subLightSize),
+                (int) (Height), "plus.png");
+        addKey.setSpawnedOutside(true);
+        root.getChildren().add(addKey);
+        TranslateTransition cominInHot = new TranslateTransition(Duration.seconds(animationSpeed),
+                addKey);
+        cominInHot.setToY(-yHeight + 1.05 * buttonSize / 2);// ? Here is a randomly guesed value
+        cominInHot.play();
+
+        addKey.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                GButton confirm = new GButton();
+                createImageSubButton(confirm, subLightSize, subLightSize, (int) (400 - 0.5 *
+                        subLightSize),
+                        (int) (yHeight), "confirmation.png");
+                confirm.setOpacity(0);
+                root.getChildren().add(confirm);
+
+                // Fade in animation
+                FadeTransition fadeIn = new FadeTransition(Duration.seconds(.4), confirm);
+                fadeIn.setFromValue(0);
+                fadeIn.setToValue(.95);
+
+                // Fade hold animation (staying visible for a shorter while)
+                PauseTransition hold = new PauseTransition(Duration.seconds(0.1)); // Adjust the duration as needed
+                hold.setOnFinished(e -> {
+
+                    try {
+
+                        AudioClip sound = new AudioClip("confimation.wav");
+                        sound.play();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    // Fade out animation
+                    FadeTransition fadeOut = new FadeTransition(Duration.seconds(.4), confirm);
+                    fadeOut.setFromValue(.95);
+                    fadeOut.setToValue(0);
+                    fadeOut.setOnFinished(ev -> {
+                        // Remove the confirm button from the root after the fade out animation finishes
+                        root.getChildren().remove(confirm);
+                    });
+                    fadeOut.play();
+                });
+
+                // Play animations sequentially
+                SequentialTransition sequence = new SequentialTransition(fadeIn, hold);
+                sequence.play();
+            }
+        });
     }
 
     public static void main(String[] args) {
