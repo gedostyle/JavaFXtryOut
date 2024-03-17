@@ -1,5 +1,9 @@
 
 import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
@@ -9,17 +13,22 @@ import javafx.scene.layout.Region;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.scene.media.AudioClip;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+
 import java.io.File;
-import java.net.URI;
-import java.nio.file.Paths;
 
 public class test extends Application {
     private final int Height = 480;
@@ -30,7 +39,7 @@ public class test extends Application {
     private double animationSpeed;
     private boolean onPi = false;
     private boolean keySubmenu;
-
+    private Text textField;
     private Pane root;
 
     // Only can use my type of Top G button here
@@ -44,6 +53,7 @@ public class test extends Application {
     private GButton myLightClose;
 
     private GButton myMenu;
+    private int numOfKeys = 0;
     // private int MenuAnimationDuration;
 
     private int buttonSize;
@@ -76,6 +86,7 @@ public class test extends Application {
         lightSubButtons.clear();
         keySubmenu = false;
         animationSpeed = .2;
+        textField = new Text();
 
         // ---------------------------
 
@@ -318,8 +329,24 @@ public class test extends Application {
                     keySubmenu = true;
                     buttonDistribute(myKey);
                     addTheKeyAddButton();
+                    DBTest db = new DBTest();
+                    String jsonString = db
+                            .makeGETRequest("https://studev.groept.be/api/a23ib2b05/Get_total_nr_of_keys");
+                    try {
+                        // Parse JSON string to JSONArray
+                        JSONArray array = new JSONArray(jsonString);
 
-                    // TODO make the keyCounter come in with the MONSTERRAT font
+                        // Assuming the JSON array contains only one element
+                        JSONObject curObject = array.getJSONObject(0);
+
+                        // Get the count from the JSON object
+                        numOfKeys = curObject.getInt("COUNT(key_id)");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // Handle JSON parsing or other exceptions
+                    }
+
+                    textFieldHudini(root, true);
 
                 }
             }
@@ -349,6 +376,7 @@ public class test extends Application {
                             addKey);
                     addButtonGoBack.setToY(0);
                     addButtonGoBack.play();
+                    textFieldHudini(root, false);
                 }
             }
         });
@@ -801,7 +829,6 @@ public class test extends Application {
                 root.getChildren().add(confirm);
                 DBTest db = new DBTest();
                 db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 1);
-                tellDatabaseToStoreNewButton();
                 try {
 
                     File file = new File(
@@ -836,14 +863,41 @@ public class test extends Application {
                 // Play animations sequentially
                 SequentialTransition sequence = new SequentialTransition(fadeIn, hold);
                 sequence.play();
+                numOfKeys++;
+                textField.setText("  Number of keys: " + numOfKeys);
             }
         });
     }
 
-    public void tellDatabaseToStoreNewButton() {
-        // makeGetRequest and then just toogle the value to 1 where button has to be
-        // stored
+    public void textFieldHudini(Pane parentPane, boolean on) {
+        // Set initial text
+        textField.setText("  Number of keys: " + numOfKeys);
 
+        // Apply CSS to center the text horizontally
+        textField.setFont(Font.font("Montserrat-Medium", 20));
+        // textField.setTextAlignment(TextAlignment.CENTER);
+        textField.setLayoutX(325);
+        textField.setLayoutY(420);
+        // Set initial opacity based on the 'on' parameter
+        textField.setOpacity(on ? 0.0 : .3);
+
+        // Create a fade transition
+        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), textField);
+
+        // Set the opacity values for the fade in and fade out animations
+        if (on) {
+            fadeTransition.setFromValue(0.0);
+            fadeTransition.setToValue(.3);
+        } else {
+            fadeTransition.setFromValue(.3);
+            fadeTransition.setToValue(0);
+        }
+
+        // Play the fade transition
+        fadeTransition.play();
+
+        // Add the text field to the parent pane
+        parentPane.getChildren().add(textField);
     }
 
     public static void main(String[] args) {
