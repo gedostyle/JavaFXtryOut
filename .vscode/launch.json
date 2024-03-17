@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ColorPickerApp",
+            "request": "launch",
+            "mainClass": "ColorPickerApp",
+            "projectName": "JavaFXtryOut_625a24cf"
+        },
+        {
+            "type": "java",
+            "name": "CustomColorPickerDemo",
+            "request": "launch",
+            "mainClass": "CustomColorPickerDemo",
+            "projectName": "JavaFXtryOut_625a24cf"
+        },
+        {
+            "type": "java",
             "name": "test",
             "request": "launch",
             "mainClass": "main.java.test",

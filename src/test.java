@@ -24,6 +24,8 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.scene.media.AudioClip;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -56,6 +58,7 @@ public class test extends Application {
     private int numOfKeys = 0;
     // private int MenuAnimationDuration;
 
+    private Circle colorPreviewWindow;
     private int buttonSize;
     private int subLightSize = 100;
     private double xOffset = 0;
@@ -397,8 +400,8 @@ public class test extends Application {
                 // myWheather.setDisable(true);
                 // myLightSwitch.setOpacity(.2);
                 // TODO add a menu if needed... Had difficulties getting the animation down
-
-                upDateButtonDatabase();
+                buttonDistributeAll();
+                initializeColorPicker();
 
             }
         });
@@ -586,6 +589,25 @@ public class test extends Application {
                 }
 
             }
+        }
+    }
+
+    public void buttonDistributeAll() {
+        for (GButton b : buttons) {
+            // Exclude the current button and the menu button
+            b.rememberPositionX();
+            b.rememberPositionY();
+            double outTheScreenLeft = -buttonSize;
+            double outTheScreenRight = Width;
+            TranslateTransition buttonOut = new TranslateTransition(Duration.seconds(animationSpeed), b);
+            double destinationX = Width / 2 > b.getLayoutX() ? outTheScreenLeft - b.getLayoutX()
+                    : outTheScreenRight - b.getLayoutX();
+            buttonOut.setToX(destinationX);
+            buttonOut.play();
+            if (b.getLayoutX() == Width || b.getLayoutX() == -buttonSize) {
+                b.setDisable(true);
+            }
+
         }
     }
 
@@ -898,6 +920,77 @@ public class test extends Application {
 
         // Add the text field to the parent pane
         parentPane.getChildren().add(textField);
+    }
+    // * Colorpicker following --------------------------------------- */
+
+    public void initializeColorPicker() {
+
+        // Create a color picker circle
+        Circle colorPicker = createColorPicker();
+
+        // Create a circle to display the selected color
+        colorPreviewWindow = new Circle(20, Color.WHITE);
+        colorPreviewWindow.setStroke(Color.BLACK);
+        colorPreviewWindow.setStrokeWidth(2);
+        colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
+        colorPreviewWindow.setLayoutX(Width / 2);
+
+        // Add mouse click event listener
+        colorPicker.setOnMouseClicked(event -> {
+            // Get RGB value of the color at the clicked position
+            Color pickedColor = getColorAtPosition(colorPicker, event.getX(), event.getY());
+            updateColorDisplay(pickedColor);
+        });
+        root.getChildren().addAll(colorPreviewWindow);
+    }
+
+    public Color getColorAtPosition(Circle colorPicker, double x, double y) {
+        // Calculate angle and distance from the center
+        double angle = Math.toDegrees(Math.atan2(y - colorPicker.getCenterY(), x - colorPicker.getCenterX()));
+        angle += 90; // Shift the hue so that red appears at the top
+        if (angle < 0) {
+            angle += 360;
+        }
+        double distance = Math
+                .sqrt(Math.pow(x - colorPicker.getCenterX(), 2) + Math.pow(y - colorPicker.getCenterY(), 2));
+
+        // Calculate saturation based on distance from the center
+        double maxDistance = colorPicker.getRadius();
+        double saturation = (distance / maxDistance);
+        saturation = Math.max(0, saturation);
+
+        // Convert angle and calculated saturation to hue and saturation, then create
+        // color
+        return Color.hsb(angle, saturation, 1.0);
+    }
+
+    // Method to update the color display circle
+    private void updateColorDisplay(Color color) {
+        colorPreviewWindow.setFill(color);
+    }
+
+    // Method to create a circular color picker
+    public Circle createColorPicker() {
+        int radius = 175;
+        int centerOffsetY = 35;
+        Circle colorPicker = new Circle(200, Color.WHITE);
+        colorPicker.setRadius(radius);
+        colorPicker.setStroke(Color.BLACK);
+        colorPicker.setStrokeWidth(0);
+        colorPicker.setLayoutX(Width / 2);
+        colorPicker.setLayoutY(Height / 2 - centerOffsetY);
+        Image image = new Image("Circle.png");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(radius * 2);
+        imageView.setFitHeight(radius * 2);
+        imageView.setLayoutX(Width / 2 - radius);
+        imageView.setLayoutY(Height / 2 - radius - centerOffsetY);
+        // Make the image click-through
+        imageView.setMouseTransparent(true);
+        // Add the Circle and ImageView to the StackPane
+        root.getChildren().addAll(colorPicker, imageView);
+        // TODO add a backgdrop Shadow
+        return colorPicker;
     }
 
     public static void main(String[] args) {
