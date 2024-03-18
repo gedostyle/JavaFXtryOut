@@ -1,9 +1,7 @@
 
 import java.util.ArrayList;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
@@ -13,11 +11,10 @@ import javafx.scene.layout.Region;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -28,8 +25,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-
 import java.io.File;
 
 public class test extends Application {
@@ -41,7 +36,8 @@ public class test extends Application {
     private double animationSpeed;
     private boolean onPi = false;
     private boolean keySubmenu;
-    private Text textField;
+    private boolean menuSubmenu;
+    private Text textFieldKeys;
     private Pane root;
 
     // Only can use my type of Top G button here
@@ -59,11 +55,17 @@ public class test extends Application {
     // private int MenuAnimationDuration;
 
     private Circle colorPreviewWindow;
+    private Circle colorPicker;
+    private ImageView imageViewColorPicker;
+    private Slider slider;
+    private Text textPreview;
+    private Text textIntensity;
     private int buttonSize;
     private int subLightSize = 100;
     private double xOffset = 0;
     private double yOffset = 0;
     private boolean draggable = false;
+    private DBTest db;
 
     // ! I think the way the subbuttons are initialized might be wrong
 
@@ -89,8 +91,9 @@ public class test extends Application {
         lightSubButtons.clear();
         keySubmenu = false;
         animationSpeed = .2;
-        textField = new Text();
-
+        textFieldKeys = new Text();
+        menuSubmenu = false;
+        db = new DBTest();
         // ---------------------------
 
         // Create a root node for the scene
@@ -332,7 +335,7 @@ public class test extends Application {
                     keySubmenu = true;
                     buttonDistribute(myKey);
                     addTheKeyAddButton();
-                    DBTest db = new DBTest();
+
                     String jsonString = db
                             .makeGETRequest("https://studev.groept.be/api/a23ib2b05/Get_total_nr_of_keys");
                     try {
@@ -364,7 +367,7 @@ public class test extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (keySubmenu) {
-                    DBTest db = new DBTest();
+
                     db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 0);
                     goBackToPosition();
                     TranslateTransition buttonGoBack = new TranslateTransition(
@@ -387,6 +390,34 @@ public class test extends Application {
         // ---------------------------------
 
         // TODO add menu button
+        GButton myMenuClose = new GButton();
+        createImageSubButton(myMenuClose, subLightSize / 2, subLightSize / 2, Width, subLightSize / 4, "Close.png"); // !
+                                                                                                                     // This
+                                                                                                                     // is
+        // still too
+        // big
+
+        myMenuClose.setOpacity(.5);
+        root.getChildren().add(myMenuClose);
+
+        myMenuClose.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                if (menuSubmenu) {
+                    goBackToPosition();
+                    showColorPicker(false);
+
+                    TranslateTransition buttonGoBack = new TranslateTransition(
+                            Duration.seconds(animationSpeed),
+                            myMenuClose);
+                    buttonGoBack.setToX(0);
+                    buttonGoBack.play();
+                    menuSubmenu = false;
+                }
+            }
+        });
+
         myMenu = new GButton();
         createImageButton(myMenu, 100, 100, 0, 0, "menu.png");
 
@@ -401,7 +432,13 @@ public class test extends Application {
                 // myLightSwitch.setOpacity(.2);
                 // TODO add a menu if needed... Had difficulties getting the animation down
                 buttonDistributeAll();
-                initializeColorPicker();
+                showColorPicker(true);
+                TranslateTransition MoveItIn = new TranslateTransition(
+                        Duration.seconds(animationSpeed),
+                        myMenuClose);
+                MoveItIn.setToX(-.75 * subLightSize);
+                MoveItIn.play();
+                menuSubmenu = true;
 
             }
         });
@@ -412,7 +449,6 @@ public class test extends Application {
         //
         // Show the stage
         primaryStage.show();
-        System.out.println(buttons.size());
     }
 
     public void createImageButton(GButton button, int width, int height, int xPos, int yPos, String path) {
@@ -594,20 +630,20 @@ public class test extends Application {
 
     public void buttonDistributeAll() {
         for (GButton b : buttons) {
-            // Exclude the current button and the menu button
-            b.rememberPositionX();
-            b.rememberPositionY();
-            double outTheScreenLeft = -buttonSize;
-            double outTheScreenRight = Width;
-            TranslateTransition buttonOut = new TranslateTransition(Duration.seconds(animationSpeed), b);
-            double destinationX = Width / 2 > b.getLayoutX() ? outTheScreenLeft - b.getLayoutX()
-                    : outTheScreenRight - b.getLayoutX();
-            buttonOut.setToX(destinationX);
-            buttonOut.play();
-            if (b.getLayoutX() == Width || b.getLayoutX() == -buttonSize) {
-                b.setDisable(true);
+            if (b != myMenu) {// Exclude the current button and the menu button
+                b.rememberPositionX();
+                b.rememberPositionY();
+                double outTheScreenLeft = -buttonSize;
+                double outTheScreenRight = Width;
+                TranslateTransition buttonOut = new TranslateTransition(Duration.seconds(.6), b);
+                double destinationX = Width / 2 > b.getLayoutX() ? outTheScreenLeft - b.getLayoutX()
+                        : outTheScreenRight - b.getLayoutX();
+                buttonOut.setToX(destinationX);
+                buttonOut.play();
+                if (b.getLayoutX() == Width || b.getLayoutX() == -buttonSize) {
+                    b.setDisable(true);
+                }
             }
-
         }
     }
 
@@ -728,7 +764,6 @@ public class test extends Application {
     // * Database peripherals */
 
     public void upDateButtonDatabase() {
-        DBTest db = new DBTest();
         String response = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/Get_all_lights");
         ArrayList<String> values = new ArrayList<>();
         values = db.parseJSON(response);
@@ -755,7 +790,6 @@ public class test extends Application {
                 addSubLight(newButton);
                 toggleSubButtonImage(newButton);
             }
-            System.out.println(LightID);
         }
         if (checkAllSubsOn()) {
             lightOn = true;
@@ -849,7 +883,7 @@ public class test extends Application {
                         (int) (yHeight), "confirmation.png");
                 confirm.setOpacity(0);
                 root.getChildren().add(confirm);
-                DBTest db = new DBTest();
+
                 db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 1);
                 try {
 
@@ -886,25 +920,25 @@ public class test extends Application {
                 SequentialTransition sequence = new SequentialTransition(fadeIn, hold);
                 sequence.play();
                 numOfKeys++;
-                textField.setText("  Number of keys: " + numOfKeys);
+                textFieldKeys.setText("  Number of keys: " + numOfKeys);
             }
         });
     }
 
     public void textFieldHudini(Pane parentPane, boolean on) {
         // Set initial text
-        textField.setText("  Number of keys: " + numOfKeys);
+        textFieldKeys.setText("  Number of keys: " + numOfKeys);
 
         // Apply CSS to center the text horizontally
-        textField.setFont(Font.font("Montserrat-Medium", 20));
+        textFieldKeys.setFont(Font.font("Montserrat-Medium", 20));
         // textField.setTextAlignment(TextAlignment.CENTER);
-        textField.setLayoutX(325);
-        textField.setLayoutY(420);
+        textFieldKeys.setLayoutX(325);
+        textFieldKeys.setLayoutY(420);
         // Set initial opacity based on the 'on' parameter
-        textField.setOpacity(on ? 0.0 : .3);
+        textFieldKeys.setOpacity(on ? 0.0 : .3);
 
         // Create a fade transition
-        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), textField);
+        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), textFieldKeys);
 
         // Set the opacity values for the fade in and fade out animations
         if (on) {
@@ -919,29 +953,119 @@ public class test extends Application {
         fadeTransition.play();
 
         // Add the text field to the parent pane
-        parentPane.getChildren().add(textField);
+        parentPane.getChildren().add(textFieldKeys);
     }
     // * Colorpicker following --------------------------------------- */
 
-    public void initializeColorPicker() {
+    public void showColorPicker(boolean show) {
 
-        // Create a color picker circle
-        Circle colorPicker = createColorPicker();
+        // TODO make in and out animation
+        // Set the opacity values for fading in or out
+        if (show) {
 
-        // Create a circle to display the selected color
-        colorPreviewWindow = new Circle(20, Color.WHITE);
-        colorPreviewWindow.setStroke(Color.BLACK);
-        colorPreviewWindow.setStrokeWidth(2);
-        colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
-        colorPreviewWindow.setLayoutX(Width / 2);
+            // Create a vertical slider
+            slider = new Slider();
+            slider.setOrientation(Orientation.VERTICAL);
+            slider.setMin(0);
+            slider.setMax(100);
+            slider.setValue(50); // Initial value
+            slider.setShowTickMarks(false);
+            slider.setShowTickLabels(false);
+            slider.setMajorTickUnit(10);
+            textPreview = new Text();
+            // Set initial text
+            textPreview = new Text();
+            textPreview.setText("Color preview");
+            textPreview.setFont(Font.font("Montserrat-Medium", 20));
 
-        // Add mouse click event listener
-        colorPicker.setOnMouseClicked(event -> {
-            // Get RGB value of the color at the clicked position
-            Color pickedColor = getColorAtPosition(colorPicker, event.getX(), event.getY());
-            updateColorDisplay(pickedColor);
-        });
-        root.getChildren().addAll(colorPreviewWindow);
+            textIntensity = new Text();
+            // Set initial text
+            textIntensity.setText("Brightness");
+
+            // Apply CSS to center the text horizontally
+            textIntensity.setFont(Font.font("Montserrat-Medium", 20));
+            // textField.setTextAlignment(TextAlignment.CENTER);
+
+            // Customize the thickness (width) and height of the slider
+            slider.setPrefWidth(75); // Set preferred width
+            slider.setPrefHeight(200); // Set preferred height
+
+            Image image = new Image("Circle.png");
+            imageViewColorPicker = new ImageView(image);
+            colorPicker = new Circle(200, Color.WHITE);
+            int radius = 175;
+            int centerOffsetY = 35;
+
+            slider.setLayoutX(Width / 2 + radius + 60);
+            slider.setLayoutY(Height / 2 - radius / 2);
+
+            textPreview.setLayoutX(Width / 2 - 61);
+            textPreview.setLayoutY(Height / 2 - centerOffsetY / 4 + 1.05 * radius);
+            textPreview.setOpacity(0.29);
+
+            textIntensity.setLayoutX(Width / 2 + radius + 48);
+            textIntensity.setLayoutY(Height / 2 - 1.15 * radius / 2);
+            textIntensity.setOpacity(0.29);
+
+            colorPicker.setRadius(radius);
+
+            colorPicker.setStroke(Color.BLACK);
+            colorPicker.setStrokeWidth(0);
+            colorPicker.setLayoutX(Width / 2);
+            colorPicker.setLayoutY(Height / 2 - centerOffsetY);
+            imageViewColorPicker.setFitWidth(radius * 2);
+            imageViewColorPicker.setFitHeight(radius * 2);
+            imageViewColorPicker.setLayoutX(Width / 2 - radius);
+            imageViewColorPicker.setLayoutY(Height / 2 - radius - centerOffsetY);
+            // Make the image click-through
+            imageViewColorPicker.setMouseTransparent(true);
+            // Add the Circle and ImageView to the StackPane
+
+            // Listen for changes in the slider value and update the label
+            slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+                db.makeGETRequest(
+                        "https://studev.groept.be/api/a23ib2b05/Brightness_selection/" + newValue.intValue());
+            });
+            // TODO add a backgdrop Shadow
+
+            colorPreviewWindow = new Circle(20, Color.WHITE);
+            colorPreviewWindow.setStroke(Color.BLACK);
+            colorPreviewWindow.setStrokeWidth(2);
+            colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
+            colorPreviewWindow.setLayoutX(Width / 2);
+            root.getChildren().addAll(colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
+                    textIntensity);
+            FadeTransition fadePicker = new FadeTransition(Duration.millis(200), colorPicker);
+            FadeTransition fadeImage = new FadeTransition(Duration.millis(200), imageViewColorPicker);
+            FadeTransition fadePreview = new FadeTransition(Duration.millis(200), colorPreviewWindow);
+
+            colorPicker.setOpacity(0);
+            imageViewColorPicker.setOpacity(0);
+            colorPreviewWindow.setOpacity(0);
+
+            // Add mouse click event listener
+            colorPicker.setOnMouseClicked(event -> {
+                // Get RGB value of the color at the clicked position
+                Color pickedColor = getColorAtPosition(colorPicker, event.getX(), event.getY());
+                updateColorDisplay(pickedColor);
+            });
+            fadePicker.setFromValue(0);
+            fadePicker.setToValue(1);
+            fadeImage.setFromValue(0);
+            fadeImage.setToValue(1);
+            fadePreview.setFromValue(0);
+            fadePreview.setToValue(1);
+
+            // Play the fade transitions
+            fadePicker.play();
+            fadeImage.play();
+            fadePreview.play();
+
+        } else {
+            root.getChildren().removeAll(colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
+                    textIntensity);
+        }
+
     }
 
     public Color getColorAtPosition(Circle colorPicker, double x, double y) {
@@ -966,31 +1090,11 @@ public class test extends Application {
 
     // Method to update the color display circle
     private void updateColorDisplay(Color color) {
+        int red = (int) (color.getRed() * 255);
+        int green = (int) (color.getGreen() * 255);
+        int blue = (int) (color.getBlue() * 255);
+        db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/RGB_selection/" + red + "/" + green + "/" + blue);
         colorPreviewWindow.setFill(color);
-    }
-
-    // Method to create a circular color picker
-    public Circle createColorPicker() {
-        int radius = 175;
-        int centerOffsetY = 35;
-        Circle colorPicker = new Circle(200, Color.WHITE);
-        colorPicker.setRadius(radius);
-        colorPicker.setStroke(Color.BLACK);
-        colorPicker.setStrokeWidth(0);
-        colorPicker.setLayoutX(Width / 2);
-        colorPicker.setLayoutY(Height / 2 - centerOffsetY);
-        Image image = new Image("Circle.png");
-        ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(radius * 2);
-        imageView.setFitHeight(radius * 2);
-        imageView.setLayoutX(Width / 2 - radius);
-        imageView.setLayoutY(Height / 2 - radius - centerOffsetY);
-        // Make the image click-through
-        imageView.setMouseTransparent(true);
-        // Add the Circle and ImageView to the StackPane
-        root.getChildren().addAll(colorPicker, imageView);
-        // TODO add a backgdrop Shadow
-        return colorPicker;
     }
 
     public static void main(String[] args) {
