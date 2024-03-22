@@ -1,14 +1,19 @@
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import javafx.scene.layout.Region;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
@@ -26,6 +31,9 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 
 public class test extends Application {
     private final int Height = 480;
@@ -67,6 +75,11 @@ public class test extends Application {
     private boolean draggable = false;
     private DBTest db;
 
+    private int oldMicStatus;
+    private ImageView micIndicator;
+    
+
+
     // ! I think the way the subbuttons are initialized might be wrong
 
     // ! Make sure the subbutons always know what value they are supposed to be on
@@ -94,6 +107,7 @@ public class test extends Application {
         textFieldKeys = new Text();
         menuSubmenu = false;
         db = new DBTest();
+        oldMicStatus=4; //This is on purpose a random number so the first itteration of mic status amkes the right image
         // ---------------------------
 
         // Create a root node for the scene
@@ -266,29 +280,14 @@ public class test extends Application {
             public void handle(ActionEvent event) {
 
                 if (!draggable) {
-                    if (musicPlaying) {
+                    if (!musicPlaying) {
                         toggleButtonImage(myMusicPlayer, "pause.png");
-                        musicPlaying = false;
+                        musicPlaying = true;
+                        setMusicState(1);
                     } else {
                         toggleButtonImage(myMusicPlayer, "play.png");
-                        musicPlaying = true;
-                        // here is marteens code for the
-                        if (onPi) {
-                            // !Activate if we have adjusted the path
-                            // try {
-                            // ProcessBuilder pb = new ProcessBuilder("python",
-                            // "C:/Users/maart/IdeaProjects/untitled2/music_visualizer.py"); // ! replace
-                            // file
-                            // // path
-                            // pb.inheritIO(); // Redirects the standard input, output, and error to the
-                            // current Java
-                            // // process
-                            // pb.start();
-                            // } catch (IOException ex) {
-                            // ex.printStackTrace();
-                            // }
-                        }
-
+                        musicPlaying = false;
+                        setMusicState(0);
                     }
                 }
             }
@@ -444,7 +443,17 @@ public class test extends Application {
         });
 
         root.getChildren().add(myMenu);
+// Create a Timeline to call micIndicator() periodically
+Timeline timeline = new Timeline(
+    new KeyFrame(Duration.seconds(0.6), event -> micIndicator()),
+    new KeyFrame(Duration.seconds(.9), event -> updateMusicState())
+);
+timeline.setCycleCount(Timeline.INDEFINITE); // Run indefinitely
+timeline.play();
 
+        // Show the stage
+        primaryStage.show();
+    
         // ? Do we have more button ideas
         //
         // Show the stage
@@ -1097,7 +1106,63 @@ public class test extends Application {
         colorPreviewWindow.setFill(color);
     }
 
+
+    //*mic-indicator -------------------------------------- */
+
+ public void micIndicator() {
+    //TODO this is one of the functions that have to be multithreaded
+    String data = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/get_mic_status");
+    JSONArray array = new JSONArray(data);
+    JSONObject currObject = array.getJSONObject(0);
+    int micStatus = currObject.getInt("Red");
+    Image image;
+    if (oldMicStatus != micStatus || micIndicator == null) {
+        if (micStatus == 0) {
+            image = new Image("inactive_design.png");
+        } else if (micStatus == 1) {
+            image = new Image("computing_design.png");
+        } else {
+            image = new Image("ready_2.png");
+        }
+        oldMicStatus = micStatus;
+        int imageSize = 75;
+        Platform.runLater(() -> {
+            if (micIndicator == null) {
+                micIndicator = new ImageView(image);
+                root.getChildren().add(micIndicator);
+            } else {
+                micIndicator.setImage(image);
+            }
+            micIndicator.setFitWidth(imageSize);
+            micIndicator.setFitHeight(imageSize);
+            micIndicator.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+            micIndicator.setLayoutX(Width - imageSize);
+            micIndicator.setLayoutY(Height - imageSize);
+        });
+    }
+}
+
+//*Music-button peripherals ----------------------------------- */
+
+public void setMusicState(int state){
+    db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/set_music_playing/"+state);
+}
+
+public void updateMusicState(){
+    String data = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/get_music_playing");
+    JSONArray array = new JSONArray(data);
+    JSONObject currObject = array.getJSONObject(0);
+    int musicState = currObject.getInt("flag");
+    if((musicPlaying&&musicState==0)||(!musicPlaying&&musicState==1)){
+        musicPlaying=musicPlaying?false:true;
+        String newState= musicPlaying?"pause.png":"play.png";
+        toggleButtonImage(myMusicPlayer,newState);
+    }
+}
+
     public static void main(String[] args) {
         launch(args);
+        
+        //TODO insert a constant check for the database stuff
     }
 }
