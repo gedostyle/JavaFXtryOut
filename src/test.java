@@ -167,7 +167,7 @@ public class test extends Application {
 
                 if (!draggable) {
                     // Light switch toggle
-
+                    myMenu.setDisable(true);
                     // Goes into the submodule and creates the subbuttons
                     if (lightSubModule) {
                         if (lightOn) {
@@ -237,6 +237,7 @@ public class test extends Application {
             public void handle(ActionEvent event) {
 
                 if (lightSubModule) {
+                    myMenu.setDisable(false);
                     goBackToPosition();
                     TranslateTransition buttonGoBack = new TranslateTransition(
                             Duration.seconds(animationSpeed),
@@ -277,6 +278,7 @@ public class test extends Application {
             public void handle(ActionEvent event) {
 
                 if (!draggable) {
+                
                     if (!musicPlaying) {
                         toggleButtonImage(myMusicPlayer, "pause.png");
                         musicPlaying = true;
@@ -318,6 +320,7 @@ public class test extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (!draggable && !keySubmenu) {
+                    myMenu.setDisable(true);
                     TranslateTransition MoveItIn = new TranslateTransition(
                             Duration.seconds(animationSpeed),
                             myKeyClose);
@@ -363,7 +366,7 @@ public class test extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (keySubmenu) {
-
+                    myMenu.setDisable(false);
                     db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/update_key_addition_flag/" + 0);
                     goBackToPosition();
                     TranslateTransition buttonGoBack = new TranslateTransition(
@@ -450,8 +453,7 @@ Timeline timeline = new Timeline(
 timeline.setCycleCount(Timeline.INDEFINITE); // Run indefinitely
 timeline.play();
 
-        // Show the stage
-        primaryStage.show();
+
     
         // ? Do we have more button ideas
         //
@@ -839,10 +841,6 @@ timeline.play();
 
     }
 
-    public void toggleValue(int LightID) {
-
-    }
-
     // *--------------------------------------------------------------------------------------------
     // */
     public boolean checkAllSubsOn() {
@@ -946,7 +944,7 @@ timeline.play();
         textFieldKeys.setOpacity(on ? 0.0 : .3);
 
         // Create a fade transition
-        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), textFieldKeys);
+        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(.5), textFieldKeys);
 
         // Set the opacity values for the fade in and fade out animations
         if (on) {
@@ -997,6 +995,7 @@ timeline.play();
             // Customize the thickness (width) and height of the slider
             slider.setPrefWidth(75); // Set preferred width
             slider.setPrefHeight(200); // Set preferred height
+
             Image imagebg = new Image("ColorBackDrop.png");
             colorBackdrop= new ImageView(imagebg);
 
@@ -1054,6 +1053,8 @@ timeline.play();
             colorPreviewWindow.setStrokeWidth(2);
             colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
             colorPreviewWindow.setLayoutX(Width / 2);
+
+
             root.getChildren().addAll(colorBackdrop,colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
                     textIntensity);
             
