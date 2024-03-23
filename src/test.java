@@ -1,7 +1,5 @@
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import javafx.animation.FadeTransition;
@@ -31,8 +29,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.io.File;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 
 public class test extends Application {
@@ -65,6 +61,7 @@ public class test extends Application {
     private Circle colorPreviewWindow;
     private Circle colorPicker;
     private ImageView imageViewColorPicker;
+    private ImageView colorBackdrop;
     private Slider slider;
     private Text textPreview;
     private Text textIntensity;
@@ -405,6 +402,7 @@ public class test extends Application {
             public void handle(ActionEvent event) {
                 if (menuSubmenu) {
                     goBackToPosition();
+                    myMenu.setDisable(false);
                     showColorPicker(false);
 
                     TranslateTransition buttonGoBack = new TranslateTransition(
@@ -418,7 +416,7 @@ public class test extends Application {
         });
 
         myMenu = new GButton();
-        createImageButton(myMenu, 100, 100, 0, 0, "menu.png");
+        createImageButton(myMenu, 150, 150, -15, -15, "colorPickerMenu.png");
 
         myMenu.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -431,6 +429,7 @@ public class test extends Application {
                 // myLightSwitch.setOpacity(.2);
                 // TODO add a menu if needed... Had difficulties getting the animation down
                 buttonDistributeAll();
+                myMenu.setDisable(true);
                 showColorPicker(true);
                 TranslateTransition MoveItIn = new TranslateTransition(
                         Duration.seconds(animationSpeed),
@@ -998,10 +997,14 @@ timeline.play();
             // Customize the thickness (width) and height of the slider
             slider.setPrefWidth(75); // Set preferred width
             slider.setPrefHeight(200); // Set preferred height
+            Image imagebg = new Image("ColorBackDrop.png");
+            colorBackdrop= new ImageView(imagebg);
 
             Image image = new Image("Circle.png");
             imageViewColorPicker = new ImageView(image);
+
             colorPicker = new Circle(200, Color.WHITE);
+
             int radius = 175;
             int centerOffsetY = 35;
 
@@ -1022,6 +1025,15 @@ timeline.play();
             colorPicker.setStrokeWidth(0);
             colorPicker.setLayoutX(Width / 2);
             colorPicker.setLayoutY(Height / 2 - centerOffsetY);
+
+            double radiusBackdrop= radius*1.32;
+
+            colorBackdrop.setFitHeight(radiusBackdrop*2);
+            colorBackdrop.setFitWidth(radiusBackdrop*2);
+            colorBackdrop.setLayoutX(Width/2-radiusBackdrop);
+            colorBackdrop.setLayoutY(Height/2-radiusBackdrop-centerOffsetY);
+            colorBackdrop.setMouseTransparent(true);
+
             imageViewColorPicker.setFitWidth(radius * 2);
             imageViewColorPicker.setFitHeight(radius * 2);
             imageViewColorPicker.setLayoutX(Width / 2 - radius);
@@ -1042,15 +1054,17 @@ timeline.play();
             colorPreviewWindow.setStrokeWidth(2);
             colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
             colorPreviewWindow.setLayoutX(Width / 2);
-            root.getChildren().addAll(colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
+            root.getChildren().addAll(colorBackdrop,colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
                     textIntensity);
+            
             FadeTransition fadePicker = new FadeTransition(Duration.millis(200), colorPicker);
             FadeTransition fadeImage = new FadeTransition(Duration.millis(200), imageViewColorPicker);
             FadeTransition fadePreview = new FadeTransition(Duration.millis(200), colorPreviewWindow);
-
+            FadeTransition backdrop = new FadeTransition(Duration.millis(200), colorBackdrop);
             colorPicker.setOpacity(0);
             imageViewColorPicker.setOpacity(0);
             colorPreviewWindow.setOpacity(0);
+            colorBackdrop.setOpacity(0);
 
             // Add mouse click event listener
             colorPicker.setOnMouseClicked(event -> {
@@ -1058,21 +1072,25 @@ timeline.play();
                 Color pickedColor = getColorAtPosition(colorPicker, event.getX(), event.getY());
                 updateColorDisplay(pickedColor);
             });
+            backdrop.setFromValue(0);
+            backdrop.setToValue(1);
             fadePicker.setFromValue(0);
             fadePicker.setToValue(1);
             fadeImage.setFromValue(0);
             fadeImage.setToValue(1);
             fadePreview.setFromValue(0);
             fadePreview.setToValue(1);
+            backdrop.setFromValue(0);
+            backdrop.setToValue(1);
 
             // Play the fade transitions
             fadePicker.play();
             fadeImage.play();
             fadePreview.play();
-
+            backdrop.play();
         } else {
             root.getChildren().removeAll(colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
-                    textIntensity);
+                    textIntensity, colorBackdrop);
         }
 
     }
