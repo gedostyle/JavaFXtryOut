@@ -1140,8 +1140,11 @@ timeline.play();
             image = new Image("inactive_design.png");
         } else if (micStatus == 1) {
             image = new Image("computing_design.png");
-        } else {
+        } else if(micStatus==2){
             image = new Image("ready_2.png");
+        }
+        else{
+            image = new Image("ready_design.png");
         }
         oldMicStatus = micStatus;
         int imageSize = 75;
