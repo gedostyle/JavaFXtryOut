@@ -978,6 +978,12 @@ timeline.play();
             slider.setShowTickMarks(false);
             slider.setShowTickLabels(false);
             slider.setMajorTickUnit(10);
+
+            String data = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/get_all_Backlight_data");
+            JSONArray array = new JSONArray(data);
+            JSONObject currObject = array.getJSONObject(0);
+            int currBright = currObject.getInt("Brightness");
+            slider.setValue(currBright);
             textPreview = new Text();
             // Set initial text
             textPreview = new Text();
@@ -1053,6 +1059,12 @@ timeline.play();
             colorPreviewWindow.setStrokeWidth(2);
             colorPreviewWindow.setLayoutY(Height / 2 + colorPicker.getRadius() + 35);
             colorPreviewWindow.setLayoutX(Width / 2);
+            
+            int red = currObject.getInt("Red");
+            int blue = currObject.getInt("Blue");
+            int green = currObject.getInt("Green");
+
+            colorPreviewWindow.setFill(Color.rgb(red, green, blue));
 
 
             root.getChildren().addAll(colorBackdrop,colorPicker, imageViewColorPicker, colorPreviewWindow, slider, textPreview,
