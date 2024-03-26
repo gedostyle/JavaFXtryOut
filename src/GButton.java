@@ -20,18 +20,14 @@ public class GButton extends Button {
     public GButton() {
         super();
 
-        LightDic = new HashMap<>();
-        // SubLights all get a know weather they are on or off and they can tell you
-        // their current image path
-        LightDic.put(Lights.SWITCH, new String[] { "SwitchOn.png", "SwitchOff.png" });
-        // TODO add other filepaths
-
         oldPositionX = 0;
         oldPositionY = 0;
         LightDic = new HashMap<>();
         // SubLights all get a know weather they are on or off and they can tell you
         // their current image path
         LightDic.put(Lights.SWITCH, new String[] { "SwitchOn.png", "SwitchOff.png" });
+        LightDic.put(Lights.BULB, new String[] { "SwitchOn.png", "SwitchOff.png" });
+        LightDic.put(Lights.PLUG, new String[] { "SwitchOn.png", "SwitchOff.png" });
     }
 
     public GButton(int lightID, boolean on, String name, String function, Lights type) {
@@ -41,6 +37,8 @@ public class GButton extends Button {
         // SubLights all get a know weather they are on or off and they can tell you
         // their current image path
         LightDic.put(Lights.SWITCH, new String[] { "SwitchOn.png", "SwitchOff.png" });
+        LightDic.put(Lights.BULB, new String[] { "SwitchOn.png", "SwitchOff.png" });
+        LightDic.put(Lights.PLUG, new String[] { "SwitchOn.png", "SwitchOff.png" });
         // TODO add other filepaths
 
         this.offPath = LightDic.get(type)[0];

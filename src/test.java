@@ -775,15 +775,14 @@ timeline.play();
 
     public void upDateButtonDatabase() {
         String response = db.makeGETRequest("https://studev.groept.be/api/a23ib2b05/Get_all_lights");
-        ArrayList<String> values = new ArrayList<>();
-        values = db.parseJSON(response);
-        for (int i = 0; i < values.size() - 4; i++) {
-            int LightID = Integer.parseInt(values.get(i));
-            boolean LightOn = toBooleanConverter(Integer.parseInt(values.get(i + 1)));
-            String LightName = values.get(i + 2);
-            String LightFunction = values.get(i + 3);
-            Lights SwitchType = EnumConverter(values.get(i + 4));
-            i += 4;
+        JSONArray array = new JSONArray(response);
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject currObject = array.getJSONObject(i);
+            int LightID = currObject.getInt("LightID");
+            boolean LightOn = toBooleanConverter(currObject.getInt("LightOn"));
+            String LightName = currObject.getString("LightName");
+            String LightFunction = currObject.getString("LightFunction");
+            Lights SwitchType = EnumConverter(currObject.getString("SwitchType"));
             if (LightFunction == null) {
                 LightFunction = "";
             }
